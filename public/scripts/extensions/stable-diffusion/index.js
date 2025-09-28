@@ -1710,6 +1710,9 @@ async function loadModels() {
         case sources.electronhub:
             models = await loadElectronHubModels();
             break;
+        case sources.nebulablock:
+            models = await loadNebulaBlockModels();
+            break;
         case sources.nanogpt:
             models = await loadNanoGPTModels();
             break;
@@ -1809,6 +1812,30 @@ async function loadTogetherAIModels() {
 
     if (result.ok) {
         return await result.json();
+    }
+
+    return [];
+}
+
+async function loadNebulaBlockModels() {
+    if (!secret_state[SECRET_KEYS.NEBULABOCK]) {
+        console.debug('Nebula Block API key is not set.');
+        return [];
+    }
+
+    const result = await fetch('/api/openai/electronhub/models', {
+        method: 'POST',
+        headers: getRequestHeaders(),
+    });
+
+    if (result.ok) {
+        /** @type {any[]} */
+        const data = await result.json();
+        return Array.isArray(data)
+            ? data
+                .filter(m => Array.isArray(m?.endpoints) && m.endpoints.includes('/v1/images/generations'))
+                .map(m => ({ ...m, qualities: Array.isArray(m?.qualities) ? m.qualities : undefined }))
+            : [];
     }
 
     return [];

@@ -255,6 +255,10 @@ function throwIfInvalidModel(useReverseProxy) {
     if (multimodalApi === 'electronhub' && !secret_state[SECRET_KEYS.ELECTRONHUB]) {
         throw new Error('Electron Hub API key is not set.');
     }
+
+    if (multimodalApi === 'nebulablock' && !secret_state[SECRET_KEYS.NEBULABLOCK]) {
+        throw new Error('Nebula Block API key is not set.');
+    }
 }
 
 /**

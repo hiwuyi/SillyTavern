@@ -85,6 +85,10 @@ router.post('/caption-image', async (request, response) => {
             key = readSecret(request.user.directories, SECRET_KEYS.ELECTRONHUB);
         }
 
+        if (request.body.api === 'nebulablock') {
+            key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+        }
+
         const noKeyTypes = ['custom', 'ooba', 'koboldcpp', 'vllm', 'llamacpp', 'pollinations'];
         if (!key && !request.body.reverse_proxy && !noKeyTypes.includes(request.body.api)) {
             console.warn('No key found for API', request.body.api);
@@ -175,6 +179,10 @@ router.post('/caption-image', async (request, response) => {
 
         if (request.body.api === 'electronhub') {
             apiUrl = 'https://api.electronhub.ai/v1/chat/completions';
+        }
+
+        if (request.body.api === 'nebulablock') {
+            apiUrl = 'https://inference.nebulablock.com/v1/chat/completions';
         }
 
         if (['koboldcpp', 'vllm', 'llamacpp', 'ooba'].includes(request.body.api)) {
@@ -321,6 +329,108 @@ router.post('/generate-voice', async (request, response) => {
         return response.send(Buffer.from(buffer));
     } catch (error) {
         console.error('OpenAI TTS generation failed', error);
+        response.status(500).send('Internal server error');
+    }
+});
+
+// Nebula Block TTS proxy
+router.post('/nebulablock/generate-voice', async (request, response) => {
+    try {
+        const key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+
+        if (!key) {
+            console.warn('No Nebula Block key found');
+            return response.sendStatus(400);
+        }
+
+        const requestBody = {
+            input: request.body.input,
+            voice: request.body.voice,
+            speed: request.body.speed ?? 1,
+            temperature: request.body.temperature ?? undefined,
+            model: request.body.model || 'tts-1',
+            response_format: 'mp3',
+        };
+
+        // Optional provider-specific params
+        if (request.body.instructions) requestBody.instructions = request.body.instructions;
+        if (request.body.speaker_transcript) requestBody.speaker_transcript = request.body.speaker_transcript;
+        if (Number.isFinite(request.body.cfg_scale)) requestBody.cfg_scale = Number(request.body.cfg_scale);
+        if (Number.isFinite(request.body.cfg_filter_top_k)) requestBody.cfg_filter_top_k = Number(request.body.cfg_filter_top_k);
+        if (Number.isFinite(request.body.speech_rate)) requestBody.speech_rate = Number(request.body.speech_rate);
+        if (Number.isFinite(request.body.pitch_adjustment)) requestBody.pitch_adjustment = Number(request.body.pitch_adjustment);
+        if (request.body.emotional_style) requestBody.emotional_style = request.body.emotional_style;
+
+        // Handle dynamic parameters sent from the frontend
+        const knownParams = new Set(Object.keys(requestBody));
+        for (const key in request.body) {
+            if (!knownParams.has(key) && request.body[key] !== undefined) {
+                requestBody[key] = request.body[key];
+            }
+        }
+
+        // Clean undefineds
+        Object.keys(requestBody).forEach(k => requestBody[k] === undefined && delete requestBody[k]);
+
+        console.debug('Nebula Block TTS request', requestBody);
+
+        const result = await fetch('https://api.nebulablock.com/v1/audio/speech', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${key}`,
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!result.ok) {
+            const text = await result.text();
+            console.warn('Nebula Block TTS request failed', result.statusText, text);
+            return response.status(500).send(text);
+        }
+
+        const contentType = result.headers.get('content-type') || 'audio/mpeg';
+        const buffer = await result.arrayBuffer();
+        response.setHeader('Content-Type', contentType);
+        return response.send(Buffer.from(buffer));
+    } catch (error) {
+        console.error('Nebula Block TTS generation failed', error);
+        response.status(500).send('Internal server error');
+    }
+});
+
+// Nebula Block model list
+router.post('/nebulablock/models', async (request, response) => {
+    try {
+        const key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+
+        if (!key) {
+            console.warn('No Nebula Block key found');
+            return response.sendStatus(400);
+        }
+
+        const result = await fetch('https://api.nebulablock.com/api/v1/serverless/models', {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${key}`,
+            },
+        });
+
+        if (!result.ok) {
+            const text = await result.text();
+            console.warn('Nebula Block models request failed', result.statusText, text);
+            return response.status(500).send(text);
+        }
+
+        const model_list = await result.json();
+        const list = model_list.data?.models
+        const models = list.filter(item => item.model_type === "Text").map(item => ({
+            value: item.model_name,
+            text: item.model_name
+        }));
+        return response.json(models);
+    } catch (error) {
+        console.error('Nebula Block models fetch failed', error);
         response.status(500).send('Internal server error');
     }
 });
