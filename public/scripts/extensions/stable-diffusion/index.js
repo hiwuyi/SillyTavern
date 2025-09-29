@@ -83,6 +83,7 @@ const sources = {
     stability: 'stability',
     huggingface: 'huggingface',
     electronhub: 'electronhub',
+    nebulablock: 'nebulablock',
     nanogpt: 'nanogpt',
     bfl: 'bfl',
     falai: 'falai',
@@ -1281,6 +1282,10 @@ async function onModelChange() {
     extension_settings.sd.model = $('#sd_model').find(':selected').val();
     saveSettingsDebounced();
 
+    if (extension_settings.sd.source === sources.nebulablock) {
+        ensureNebulaBlockQualitySelect();
+    }
+
     const cloudSources = [
         sources.horde,
         sources.novel,
@@ -1291,6 +1296,7 @@ async function onModelChange() {
         sources.stability,
         sources.huggingface,
         sources.electronhub,
+        sources.nebulablock,
         sources.nanogpt,
         sources.bfl,
         sources.falai,
@@ -1511,6 +1517,9 @@ async function loadSamplers() {
         case sources.electronhub:
             samplers = ['N/A'];
             break;
+        case sources.nebulablock:
+            samplers = ['N/A'];
+            break;
         case sources.nanogpt:
             samplers = ['N/A'];
             break;
@@ -1663,6 +1672,8 @@ async function loadComfySamplers() {
     }
 }
 
+let nebulablockImageModelsCache = [];
+
 async function loadModels() {
     $('#sd_model').empty();
     let models = [];
@@ -1712,6 +1723,7 @@ async function loadModels() {
             break;
         case sources.nebulablock:
             models = await loadNebulaBlockModels();
+            console.log('modelsmodelsmodelsmodels:', models)
             break;
         case sources.nanogpt:
             models = await loadNanoGPTModels();
@@ -1741,6 +1753,65 @@ async function loadModels() {
     if (!extension_settings.sd.model && models.length > 0) {
         extension_settings.sd.model = models[0].value;
         $('#sd_model').val(extension_settings.sd.model).trigger('change');
+    }
+}
+
+function ensureNebulaBlockQualitySelect() {
+    try {
+        const modelId = String(extension_settings.sd.model || '');
+        if (!modelId) return;
+
+        const model = Array.isArray(nebulablockImageModelsCache) ? nebulablockImageModelsCache.find(m => String(m?.id) === modelId) : undefined;
+        const qualities = Array.isArray(model?.qualities) ? model.qualities : undefined;
+
+        let $qualityRow = $('#sd_nebulablock_quality_row');
+        if (!qualities || qualities.length === 0) {
+            if ($qualityRow.length) $qualityRow.remove();
+            extension_settings.sd.nebulablock_quality = undefined;
+            saveSettingsDebounced();
+            return;
+        }
+
+        if ($qualityRow.length === 0) {
+            $qualityRow = $(
+                '<div class="flex-container" id="sd_nebulablock_quality_row">'
+                + '  <div class="flex1">'
+                + '    <label for="sd_nebulablock_quality" data-i18n="Image Quality">Image Quality</label>'
+                + '    <select id="sd_nebulablock_quality"></select>'
+                + '  </div>'
+                + '</div>',
+            );
+
+            const $modelRow = $('#sd_model').closest('.flex1').closest('.flex-container');
+            if ($modelRow.length) {
+                $qualityRow.insertAfter($modelRow);
+            } else {
+                $('[data-sd-source="nebulablock"]').last().append($qualityRow);
+            }
+
+            $('#sd_nebulablock_quality').on('change', function () {
+                extension_settings.sd.nebulablock_quality = String($(this).val());
+                saveSettingsDebounced();
+            });
+        }
+
+        const $select = $('#sd_nebulablock_quality');
+        $select.empty();
+        for (const q of qualities) {
+            const opt = document.createElement('option');
+            opt.value = String(q);
+            opt.innerText = String(q);
+            opt.selected = String(q) === String(extension_settings.sd.nebulablock_quality || '');
+            $select.append(opt);
+        }
+        if (!$select.val()) {
+            const first = String(qualities[0]);
+            extension_settings.sd.nebulablock_quality = first;
+            $select.val(first);
+            saveSettingsDebounced();
+        }
+    } catch (e) {
+        console.error(e);
     }
 }
 
@@ -1774,10 +1845,41 @@ async function loadFalaiModels() {
     });
 
     if (result.ok) {
-        return await result.json();
+        // return await result.json();
+        /** @type {any[]} */
+        const data = await result.json();
+        return Array.isArray(data)
+            ? data
+                .filter(m => Array.isArray(m?.endpoints) && m.endpoints.includes('/v1/images/generations'))
+                .map(m => ({ ...m, qualities: Array.isArray(m?.qualities) ? m.qualities : undefined }))
+            : [];
     }
 
     return [];
+}
+
+function nebulablockGroupImageModelsByVendor(array) {
+    /** @type {Map<string, any[]>} */
+    const groups = new Map();
+    for (const m of array) {
+        const vendor = String(m?.name || m?.id || 'Other').split(':')[0].trim() || 'Other';
+        if (!groups.has(vendor)) groups.set(vendor, []);
+        groups.get(vendor).push(m);
+    }
+    return groups;
+}
+
+function getNebulaBlockImageModelText(model) {
+    const name = String(model?.name || model?.id || '');
+    const premium = model?.premium_model ? ' | Premium' : '';
+    let price = 'Unknown';
+    if (model?.pricing?.type === 'per_image') {
+        const coeff = Number(model.pricing.coefficient);
+        if (!isNaN(coeff)) {
+            price = `$${coeff}/image`;
+        }
+    }
+    return `${name} | ${price}${premium}`;
 }
 
 async function loadXAIModels() {
@@ -1818,27 +1920,30 @@ async function loadTogetherAIModels() {
 }
 
 async function loadNebulaBlockModels() {
-    if (!secret_state[SECRET_KEYS.NEBULABOCK]) {
-        console.debug('Nebula Block API key is not set.');
+    // if (!secret_state[SECRET_KEYS.NEBULABLOCK]) {
+    //     console.debug('Nebula Block API key is not set.');
+    //     return [];
+    // }
+
+    try {
+        const result = await fetch('https://api.nebulablock.com/api/v1/serverless/models', {
+            method: 'GET',
+            headers: getRequestHeaders(),
+        });
+
+        if (result.ok) {
+            const model_list = await result.json();
+            const list = model_list.data?.models
+            return list.filter(item => item.model_type === "Image").map(item => ({
+                value: item.model_name,
+                text: item.model_name
+            }));
+        }
+
+        return [];
+    } catch {
         return [];
     }
-
-    const result = await fetch('/api/openai/electronhub/models', {
-        method: 'POST',
-        headers: getRequestHeaders(),
-    });
-
-    if (result.ok) {
-        /** @type {any[]} */
-        const data = await result.json();
-        return Array.isArray(data)
-            ? data
-                .filter(m => Array.isArray(m?.endpoints) && m.endpoints.includes('/v1/images/generations'))
-                .map(m => ({ ...m, qualities: Array.isArray(m?.qualities) ? m.qualities : undefined }))
-            : [];
-    }
-
-    return [];
 }
 
 async function loadElectronHubModels() {
@@ -2187,6 +2292,9 @@ async function loadSchedulers() {
         case sources.electronhub:
             schedulers = ['N/A'];
             break;
+        case sources.nebulablock:
+            schedulers = ['N/A'];
+            break;
         case sources.nanogpt:
             schedulers = ['N/A'];
             break;
@@ -2285,6 +2393,9 @@ async function loadVaes() {
             vaes = ['N/A'];
             break;
         case sources.electronhub:
+            vaes = ['N/A'];
+            break;
+        case sources.nebulablock:
             vaes = ['N/A'];
             break;
         case sources.nanogpt:
@@ -2872,6 +2983,9 @@ async function sendGenerationRequest(generationType, prompt, additionalNegativeP
                 break;
             case sources.electronhub:
                 result = await generateElectronHubImage(prefixedPrompt, signal);
+                break;
+            case sources.nebulablock:
+                result = await generateNebulaBlockImage(prefixedPrompt, signal);
                 break;
             case sources.nanogpt:
                 result = await generateNanoGPTImage(prefixedPrompt, negativePrompt, signal);
@@ -3677,6 +3791,35 @@ async function generateHuggingFaceImage(prompt, signal) {
 }
 
 /**
+ * Generates an image using the Nebula Block API.
+ * @param {string} prompt - The main instruction used to guide the image generation.
+ * @param {AbortSignal} signal - An AbortSignal object that can be used to cancel the request.
+ * @returns {Promise<{format: string, data: string}>} - A promise that resolves when the image generation and processing are complete.
+ */
+async function generateNebulaBlockImage(prompt, signal) {
+    const size = await getClosestSize(extension_settings.sd.width, extension_settings.sd.height);
+
+    const result = await fetch('/api/sd/nebulablock/generate', {
+        method: 'POST',
+        headers: getRequestHeaders(),
+        signal: signal,
+        body: JSON.stringify({
+            model: extension_settings.sd.model,
+            prompt: prompt,
+            size: size,
+        }),
+    });
+
+    if (result.ok) {
+        const data = await result.json();
+        return { format: 'jpg', data: data.image };
+    } else {
+        const text = await result.text();
+        throw new Error(text);
+    }
+}
+
+/**
  * Generates an image using the Electron Hub API.
  * @param {string} prompt - The main instruction used to guide the image generation.
  * @param {AbortSignal} signal - An AbortSignal object that can be used to cancel the request.
@@ -3693,6 +3836,7 @@ async function generateElectronHubImage(prompt, signal) {
             model: extension_settings.sd.model,
             prompt: prompt,
             size: size,
+            quality: String(extension_settings.sd.electronhub_quality || '').trim() || undefined,
         }),
     });
 
@@ -4157,6 +4301,8 @@ function isValidState() {
             return secret_state[SECRET_KEYS.HUGGINGFACE];
         case sources.electronhub:
             return secret_state[SECRET_KEYS.ELECTRONHUB];
+        case sources.nebulablock:
+            return secret_state[SECRET_KEYS.NEBULABLOCK];
         case sources.nanogpt:
             return secret_state[SECRET_KEYS.NANOGPT];
         case sources.bfl:

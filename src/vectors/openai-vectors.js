@@ -17,6 +17,11 @@ const SOURCES = {
         url: 'api.openai.com',
         model: 'text-embedding-ada-002',
     },
+    'nebulablock': {
+        secretKey: SECRET_KEYS.NEBULABLOCK,
+        url: 'api.nebulablock.com',
+        model: 'black-forest-labs/FLUX.1-Kontext-dev',
+    },
 };
 
 /**

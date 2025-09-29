@@ -185,7 +185,7 @@ class nebulaBlockTtsProvider {
 
     async loadModels() {
         try {
-            const response = await fetch('/api/openai/electronhub/models', {
+            const response = await fetch('/api/v1/serverless/models', {
                 method: 'POST',
                 headers: getRequestHeaders(),
             });

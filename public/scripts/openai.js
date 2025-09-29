@@ -1888,7 +1888,9 @@ function saveModelList(data) {
     }
 
     if (oai_settings.chat_completion_source == chat_completion_sources.NEBULABLOCK) {
+        console.log('model_list1111:', model_list)
         model_list = model_list.filter(model => model?.endpoints?.includes('/v1/chat/completions'));
+        console.log('model_list2222:', model_list)
 
         model_list = nebulablockSortBy(model_list, oai_settings.nebulablock_sort_models);
 
@@ -3966,6 +3968,7 @@ function setContinuePostfixControls() {
 }
 
 async function getStatusOpen() {
+    console.log(11111111)
     const noValidateSources = [
         chat_completion_sources.CLAUDE,
         chat_completion_sources.AI21,
@@ -4901,7 +4904,7 @@ function getNebulaBlockMaxContext(model, isUnlocked) {
             return modelInfo.tokens;
         }
     }
-    return max_8k;
+    return max_128k;
 }
 
 /**

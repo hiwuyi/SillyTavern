@@ -62,6 +62,7 @@ const settings = {
     togetherai_model: 'togethercomputer/m2-bert-80M-32k-retrieval',
     openai_model: 'text-embedding-ada-002',
     cohere_model: 'embed-english-v3.0',
+    nebulablock_model: 'black-forest-labs/FLUX.1-Kontext-dev',
     ollama_model: 'mxbai-embed-large',
     ollama_keep: false,
     vllm_model: '',
@@ -113,6 +114,7 @@ const moduleWorker = new ModuleWorkerWrapper(synchronizeChat);
 const webllmProvider = new WebLlmVectorProvider();
 const cachedSummaries = new Map();
 const vectorApiRequiresUrl = ['llamacpp', 'vllm', 'ollama', 'koboldcpp'];
+let nebulablockModels = [];
 
 /**
  * Gets the Collection ID for a file embedded in the chat.
@@ -774,6 +776,9 @@ function getVectorsRequestBody(args = {}) {
         case 'togetherai':
             body.model = extension_settings.vectors.togetherai_model;
             break;
+        case 'nebulablock':
+            body.model = extension_settings.vectors.nebulablock_model;
+            break;
         case 'openai':
             body.model = extension_settings.vectors.openai_model;
             break;
@@ -889,6 +894,7 @@ async function insertVectorItems(collectionId, items) {
  */
 function throwIfSourceInvalid() {
     if (settings.source === 'openai' && !secret_state[SECRET_KEYS.OPENAI] ||
+        settings.source === 'nebulablock' && !secret_state[SECRET_KEYS.NEBULABLOCK] ||
         settings.source === 'palm' && !secret_state[SECRET_KEYS.MAKERSUITE] ||
         settings.source === 'vertexai' && !secret_state[SECRET_KEYS.VERTEXAI] && !secret_state[SECRET_KEYS.VERTEXAI_SERVICE_ACCOUNT] ||
         settings.source === 'mistral' && !secret_state[SECRET_KEYS.MISTRALAI] ||
@@ -1101,6 +1107,7 @@ function toggleSettings() {
     $('#vectors_world_info_settings').toggle(!!settings.enabled_world_info);
     $('#together_vectorsModel').toggle(settings.source === 'togetherai');
     $('#openai_vectorsModel').toggle(settings.source === 'openai');
+    $('#nebulablock_vectorsModel').toggle(settings.source === 'nebulablock');
     $('#cohere_vectorsModel').toggle(settings.source === 'cohere');
     $('#ollama_vectorsModel').toggle(settings.source === 'ollama');
     $('#llamacpp_vectorsModel').toggle(settings.source === 'llamacpp');
@@ -1110,9 +1117,67 @@ function toggleSettings() {
     $('#koboldcpp_vectorsModel').toggle(settings.source === 'koboldcpp');
     $('#google_vectorsModel').toggle(settings.source === 'palm' || settings.source === 'vertexai');
     $('#vector_altEndpointUrl').toggle(vectorApiRequiresUrl.includes(settings.source));
-    if (settings.source === 'webllm') {
-        loadWebLlmModels();
+    switch (settings.source) {
+        case 'nebulablock':
+            return loadNebulaBlockModels();
+        case 'webllm':
+            return loadWebLlmModels();
     }
+}
+
+async function loadNebulaBlockModels() {
+    try {
+        const response = await fetch('https://api.nebulablock.com/api/v1/serverless/models', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        /** @type {Array<any>} */
+        const data = await response.json();
+        // filter by embeddings endpoint
+        const embModels = Array.isArray(data) ? data.filter(m => Array.isArray(m?.endpoints) && m.endpoints.includes('/v1/embeddings')) : [];
+        nebulablockModels = embModels;
+        populateNebulaBlockModelSelect();
+    } catch (err) {
+        console.warn('Nebula Block models fetch failed', err);
+        nebulablockModels = [];
+        populateNebulaBlockModelSelect();
+    }
+}
+
+function groupModelsByVendor(array) {
+    /** @type {Map<string, any[]>} */
+    const groups = new Map();
+    for (const m of array) {
+        const name = String(m?.name || m?.id || 'Other');
+        const vendor = name.split(':')[0].trim() || 'Other';
+        if (!groups.has(vendor)) groups.set(vendor, []);
+        groups.get(vendor).push(m);
+    }
+    return groups;
+}
+
+function populateNebulaBlockModelSelect() {
+    const select = $('#vectors_nebulablock_model');
+    select.empty();
+    const groups = groupModelsByVendor(nebulablockModels);
+    for (const [vendor, models] of groups.entries()) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = vendor;
+        for (const m of models) {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.text = m.name || m.id;
+            optgroup.appendChild(opt);
+        }
+        select.append(optgroup);
+    }
+    if (!settings.nebulablock_model && nebulablockModels.length) {
+        settings.nebulablock_model = nebulablockModels[0].id;
+    }
+    $('#vectors_nebulablock_model').val(settings.nebulablock_model);
 }
 
 /**
@@ -1246,8 +1311,8 @@ async function onViewStatsClick() {
     toastr.info(`Total hashes: <b>${totalHashes}</b><br>
     Unique hashes: <b>${uniqueHashes}</b><br><br>
     I'll mark collected messages with a green circle.`,
-    `Stats for chat ${escapeHtml(chatId)}`,
-    { timeOut: 10000, escapeHtml: false },
+        `Stats for chat ${escapeHtml(chatId)}`,
+        { timeOut: 10000, escapeHtml: false },
     );
 
     const chat = getContext().chat;
@@ -1510,6 +1575,11 @@ jQuery(async () => {
     });
     $('#vectors_openai_model').val(settings.openai_model).on('change', () => {
         settings.openai_model = String($('#vectors_openai_model').val());
+        Object.assign(extension_settings.vectors, settings);
+        saveSettingsDebounced();
+    });
+    $('#vectors_nebulablock_model').val(settings.nebulablock_model).on('change', () => {
+        settings.nebulablock_model = String($('#vectors_nebulablock_model').val());
         Object.assign(extension_settings.vectors, settings);
         saveSettingsDebounced();
     });
