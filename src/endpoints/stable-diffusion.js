@@ -754,11 +754,12 @@ nebulablock.post('/generate', async (request, response) => {
             method: 'POST',
             body: JSON.stringify({
                 prompt: request.body.prompt,
-                negative_prompt: request.body.negative_prompt,
+                negative_prompt: String(request.body.negative_prompt),
                 height: request.body.height,
                 width: request.body.width,
                 model: request.body.model,
                 steps: request.body.steps,
+                guidance_scale: request.body.scale,
                 n: 1,
                 // Limited to 10000 on playground, works fine with more.
                 seed: request.body.seed >= 0 ? request.body.seed : Math.floor(Math.random() * 10_000_000),

@@ -3805,6 +3805,7 @@ async function generateNebulaBlockImage(prompt, negative_prompt, signal) {
             model: extension_settings.sd.model,
             prompt,
             negative_prompt,
+            scale: parseFloat(extension_settings.sd.scale),
             height: parseInt(extension_settings.sd.height),
             width: parseInt(extension_settings.sd.width),
             steps: parseInt(extension_settings.sd.steps),
