@@ -1888,16 +1888,17 @@ function saveModelList(data) {
     }
 
     if (oai_settings.chat_completion_source == chat_completion_sources.NEBULABLOCK) {
-        console.log('model_list1111:', model_list)
-        model_list = model_list.filter(model => model?.endpoints?.includes('/v1/chat/completions'));
-        console.log('model_list2222:', model_list)
-
-        model_list = nebulablockSortBy(model_list, oai_settings.nebulablock_sort_models);
-
+        console.log('set model options', model_list)
         $('#model_nebulablock_select').empty();
-
-        const groupedList = oai_settings.nebulablock_group_models ? nebulablockGroupByVendor(model_list) : model_list;
-        appendNebulaBlockOptions(groupedList, oai_settings.nebulablock_group_models);
+        model_list.forEach((model) => {
+            if (model?.model_type?.includes('Text')) {
+                $('#model_nebulablock_select').append(
+                    $('<option>', {
+                        value: model.id,
+                        text: model.name,
+                    }));
+            }
+        });
 
         const selectedModel = model_list.find(model => model.id === oai_settings.nebulablock_model);
         if (model_list.length > 0 && (!selectedModel || !oai_settings.nebulablock_model)) {

@@ -3796,17 +3796,19 @@ async function generateHuggingFaceImage(prompt, signal) {
  * @param {AbortSignal} signal - An AbortSignal object that can be used to cancel the request.
  * @returns {Promise<{format: string, data: string}>} - A promise that resolves when the image generation and processing are complete.
  */
-async function generateNebulaBlockImage(prompt, signal) {
-    const size = await getClosestSize(extension_settings.sd.width, extension_settings.sd.height);
-
+async function generateNebulaBlockImage(prompt, negative_prompt, signal) {
     const result = await fetch('/api/sd/nebulablock/generate', {
         method: 'POST',
         headers: getRequestHeaders(),
         signal: signal,
         body: JSON.stringify({
             model: extension_settings.sd.model,
-            prompt: prompt,
-            size: size,
+            prompt,
+            negative_prompt,
+            height: parseInt(extension_settings.sd.height),
+            width: parseInt(extension_settings.sd.width),
+            steps: parseInt(extension_settings.sd.steps),
+            seed: extension_settings.sd.seed,
         }),
     });
 

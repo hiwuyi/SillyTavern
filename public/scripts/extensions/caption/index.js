@@ -441,6 +441,7 @@ jQuery(async function () {
                         'moonshot': SECRET_KEYS.MOONSHOT,
                         'nanogpt': SECRET_KEYS.NANOGPT,
                         'electronhub': SECRET_KEYS.ELECTRONHUB,
+                        'nebulablock': SECRET_KEYS.NEBULABLOCK,
                     };
 
                     if (chatCompletionApis[api] && secret_state[chatCompletionApis[api]]) {
@@ -549,6 +550,7 @@ jQuery(async function () {
         await processEndpoint('pollinations', '/api/backends/chat-completions/multimodal-models/pollinations');
         await processEndpoint('nanogpt', '/api/backends/chat-completions/multimodal-models/nanogpt');
         await processEndpoint('electronhub', '/api/backends/chat-completions/multimodal-models/electronhub');
+        await processEndpoint('nebulablock', '/api/backends/chat-completions/multimodal-models/nebulablock');
     }
 
     await addSettings();
