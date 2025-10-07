@@ -51,7 +51,7 @@ import {
     SlashCommandArgument,
     SlashCommandNamedArgument,
 } from '../../slash-commands/SlashCommandArgument.js';
-import { debounce_timeout, VIDEO_EXTENSIONS } from '../../constants.js';
+import { debounce_timeout, VIDEO_EXTENSIONS, REQUEST_DOMAIN_NAMES } from '../../constants.js';
 import { SlashCommandEnumValue } from '../../slash-commands/SlashCommandEnumValue.js';
 import { callGenericPopup, Popup, POPUP_TYPE } from '../../popup.js';
 import { commonEnumProviders } from '../../slash-commands/SlashCommandCommonEnumsProvider.js';
@@ -1926,7 +1926,7 @@ async function loadNebulaBlockModels() {
     // }
 
     try {
-        const result = await fetch('https://api.nebulablock.com/api/v1/serverless/models', {
+        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless/models', {
             method: 'GET',
             headers: getRequestHeaders(),
         });
@@ -1936,7 +1936,7 @@ async function loadNebulaBlockModels() {
             const list = model_list.data?.models
             return list.filter(item => item.model_type === "Image").map(item => ({
                 value: item.model_name,
-                text: item.model_name
+                text: item.model_alias
             }));
         }
 

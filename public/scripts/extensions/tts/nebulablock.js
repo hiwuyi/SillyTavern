@@ -185,7 +185,7 @@ class nebulaBlockTtsProvider {
 
     async loadModels() {
         try {
-            const response = await fetch('/api/v1/serverless/models', {
+            const response = await fetch('/api/sd/nebulablock/models', {
                 method: 'POST',
                 headers: getRequestHeaders(),
             });

@@ -1,3 +1,8 @@
+export const REQUEST_DOMAIN_NAMES = {
+    NEBULABLOCK: 'https://api.nebulablock.com/api/v1',
+    NEBULABLOCK_CHAT: 'https://inference.nebulablock.com/v1',
+}
+
 export const PUBLIC_DIRECTORIES = {
     images: 'public/img/',
     backups: 'backups/',

@@ -1688,9 +1688,16 @@ function getOpenRouterModelTemplate(option) {
 
     const price = 0 === Number(model.pricing?.prompt) ? 'Free' : `${tokens_rounded}k t/$ `;
 
+    if (model.context_length || model.context_length === 0) {
+        return $((`
+            <div class="flex-container flexFlowColumn" title="${DOMPurify.sanitize(model.id)}">
+                <div><strong>${DOMPurify.sanitize(model.name)}</strong> | ${model.context_length} ctx | <small>${price}</small></div>
+            </div>
+        `));
+    }
     return $((`
         <div class="flex-container flexFlowColumn" title="${DOMPurify.sanitize(model.id)}">
-            <div><strong>${DOMPurify.sanitize(model.name)}</strong> | ${model.context_length} ctx | <small>${price}</small></div>
+            <div><strong>${DOMPurify.sanitize(model.name)}</strong></div>
         </div>
     `));
 }
@@ -1746,9 +1753,16 @@ function getNebulaBlockModelTemplate(option) {
 
     const capabilities = (iconsContainer.children.length) ? ` | ${iconsContainer.innerHTML}` : '';
 
+    if (model.tokens || model.tokens === 0) {
+        return $((`
+            <div class="flex-container alignItemsBaseline" title="${DOMPurify.sanitize(model.id)}">
+                <strong>${DOMPurify.sanitize(model.name)}</strong> | ${model.tokens} ctx | <small>${price}</small>${capabilities}
+            </div>
+        `));
+    }
     return $((`
         <div class="flex-container alignItemsBaseline" title="${DOMPurify.sanitize(model.id)}">
-            <strong>${DOMPurify.sanitize(model.name)}</strong> | ${model.tokens} ctx | <small>${price}</small>${capabilities}
+            <strong>${DOMPurify.sanitize(model.name)}</strong>
         </div>
     `));
 }

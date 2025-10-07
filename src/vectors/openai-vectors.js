@@ -20,7 +20,7 @@ const SOURCES = {
     'nebulablock': {
         secretKey: SECRET_KEYS.NEBULABLOCK,
         url: 'api.nebulablock.com',
-        model: 'black-forest-labs/FLUX.1-Kontext-dev',
+        model: 'Bytedance/seedream-3-0-t2i-250415',
     },
 };
 

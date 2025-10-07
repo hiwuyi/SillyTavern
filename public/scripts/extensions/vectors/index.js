@@ -25,7 +25,7 @@ import { collapseNewlines, registerDebugFunction } from '../../power-user.js';
 import { SECRET_KEYS, secret_state } from '../../secrets.js';
 import { getDataBankAttachments, getDataBankAttachmentsForSource, getFileAttachment } from '../../chats.js';
 import { debounce, getStringHash as calculateHash, waitUntilCondition, onlyUnique, splitRecursive, trimToStartSentence, trimToEndSentence, escapeHtml } from '../../utils.js';
-import { debounce_timeout } from '../../constants.js';
+import { debounce_timeout, REQUEST_DOMAIN_NAMES } from '../../constants.js';
 import { getSortedEntries } from '../../world-info.js';
 import { textgen_types, textgenerationwebui_settings } from '../../textgen-settings.js';
 import { SlashCommandParser } from '../../slash-commands/SlashCommandParser.js';
@@ -1127,7 +1127,7 @@ function toggleSettings() {
 
 async function loadNebulaBlockModels() {
     try {
-        const response = await fetch('https://api.nebulablock.com/api/v1/serverless/models', {
+        const response = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless/models', {
             method: 'POST',
             headers: getRequestHeaders(),
         });

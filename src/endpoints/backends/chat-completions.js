@@ -12,6 +12,7 @@ import {
     OPENAI_REASONING_EFFORT_MAP,
     OPENAI_REASONING_EFFORT_MODELS,
     OPENROUTER_HEADERS,
+    REQUEST_DOMAIN_NAMES,
 } from '../../constants.js';
 import {
     forwardFetchResponse,
@@ -65,8 +66,6 @@ const API_MAKERSUITE = 'https://generativelanguage.googleapis.com';
 const API_VERTEX_AI = 'https://us-central1-aiplatform.googleapis.com';
 const API_AI21 = 'https://api.ai21.com/studio/v1';
 const API_ELECTRONHUB = 'https://api.electronhub.ai/v1';
-const API_NEBULABLOCK = 'https://api.nebulablock.com/api/v1';
-const API_NEBULABLOCK_CHAT = 'https://inference.nebulablock.com/v1';
 const API_NANOGPT = 'https://nano-gpt.com/api/v1';
 const API_DEEPSEEK = 'https://api.deepseek.com/beta';
 const API_XAI = 'https://api.x.ai/v1';
@@ -1306,7 +1305,7 @@ async function sendElectronHubRequest(request, response) {
  * @param {express.Response} response Express response
  */
 async function sendNebulablockRequest(request, response) {
-    const apiUrl = API_NEBULABLOCK_CHAT;
+    const apiUrl = REQUEST_DOMAIN_NAMES.NEBULABLOCK_CHAT;
     const apiKey = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
     console.log('sendNebulablockRequest apiKey', apiKey)
     if (!apiKey) {
@@ -1531,7 +1530,7 @@ router.post('/status', async function (request, statusResponse) {
         apiKey = readSecret(request.user.directories, SECRET_KEYS.ELECTRONHUB);
         headers = {};
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.NEBULABLOCK) {
-        apiUrl = API_NEBULABLOCK + '/serverless';
+        apiUrl = REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless';
         apiKey = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
         headers = {};
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.NANOGPT) {
@@ -1697,11 +1696,11 @@ router.post('/status', async function (request, statusResponse) {
     }
 
     try {
-        console.log('check status url', apiUrl)
         const modelsUrl = new URL(urlJoin(apiUrl, '/models'));
         Object.keys(queryParams).forEach(key => {
             modelsUrl.searchParams.append(key, queryParams[key]);
         });
+        console.log('check status url', apiUrl, apiKey, modelsUrl)
         const response = await fetch(modelsUrl, {
             method: 'GET',
             headers: {
@@ -1709,7 +1708,6 @@ router.post('/status', async function (request, statusResponse) {
                 ...headers,
             },
         });
-        console.log('res', response)
         if (response.ok) {
             /** @type {any} */
             let data = await response.json();
@@ -1758,7 +1756,7 @@ router.post('/status', async function (request, statusResponse) {
             }
         }
         else {
-            console.error('Chat Completion status check failed. Either Access Token is incorrect or API endpoint is down.');
+            console.error('Chat Completion status check failed. Either Access Token is incorrect or API endpoint is down.', response);
             statusResponse.send({ error: true, data: { data: [] } });
         }
     } catch (e) {
@@ -2325,7 +2323,7 @@ multimodalModels.post('/electronhub', async (_req, res) => {
 
 multimodalModels.post('/nebulablock', async (_req, res) => {
     try {
-        const response = await fetch('https://api.nebulablock.com/api/v1/serverless/models');
+        const response = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless/models');
 
         if (!response.ok) {
             return res.json([]);
@@ -2333,7 +2331,7 @@ multimodalModels.post('/nebulablock', async (_req, res) => {
 
         /** @type {any} */
         const data = await response.json();
-        const multimodalModels = data.data.filter(m => m.metadata?.vision).map(m => m.id);
+        const multimodalModels = data.data.models.filter(m => m.model_type === 'multimodal').map(m => m.model_name);
         return res.json(multimodalModels);
     } catch (error) {
         console.error(error);

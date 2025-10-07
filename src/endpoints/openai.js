@@ -8,7 +8,7 @@ import express from 'express';
 import { getConfigValue, mergeObjectWithYaml, excludeKeysByYaml, trimV1 } from '../util.js';
 import { setAdditionalHeaders } from '../additional-headers.js';
 import { readSecret, SECRET_KEYS } from './secrets.js';
-import { AIMLAPI_HEADERS, OPENROUTER_HEADERS } from '../constants.js';
+import { AIMLAPI_HEADERS, OPENROUTER_HEADERS, REQUEST_DOMAIN_NAMES } from '../constants.js';
 
 export const router = express.Router();
 
@@ -182,7 +182,7 @@ router.post('/caption-image', async (request, response) => {
         }
 
         if (request.body.api === 'nebulablock') {
-            apiUrl = 'https://inference.nebulablock.com/v1/chat/completions';
+            apiUrl = REQUEST_DOMAIN_NAMES.NEBULABLOCK_CHAT + '/chat/completions';
         }
 
         if (['koboldcpp', 'vllm', 'llamacpp', 'ooba'].includes(request.body.api)) {
@@ -374,7 +374,7 @@ router.post('/nebulablock/generate-voice', async (request, response) => {
 
         console.debug('Nebula Block TTS request', requestBody);
 
-        const result = await fetch('https://api.nebulablock.com/v1/audio/speech', {
+        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/audio/speech', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -409,7 +409,7 @@ router.post('/nebulablock/models', async (request, response) => {
             return response.sendStatus(400);
         }
 
-        const result = await fetch('https://api.nebulablock.com/api/v1/serverless/models', {
+        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/models', {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${key}`,

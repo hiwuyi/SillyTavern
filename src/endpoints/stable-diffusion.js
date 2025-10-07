@@ -11,7 +11,7 @@ import _ from 'lodash';
 
 import { delay, getBasicAuthHeader, tryParse } from '../util.js';
 import { readSecret, SECRET_KEYS } from './secrets.js';
-import { AIMLAPI_HEADERS } from '../constants.js';
+import { AIMLAPI_HEADERS, REQUEST_DOMAIN_NAMES } from '../constants.js';
 
 /**
  * Gets the comfy workflows.
@@ -702,37 +702,37 @@ const nebulablock = express.Router();
 
 nebulablock.post('/models', async (request, response) => {
     try {
-        const key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+        const apiKey = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
 
-        if (!key) {
-            console.warn('Nebula Block key not found.');
+        if (!apiKey) {
+            console.warn('Nebula Block apiKey not found.');
             return response.sendStatus(400);
         }
-
-        const modelsResponse = await fetch('https://api.nebulablock.com/api/v1/serverless/models', {
+        const apiUrl = REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless';
+        const modelsUrl = new URL(urlJoin(apiUrl, '/models'));
+        const modelsResponse = await fetch(modelsUrl, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${key}`,
+                'Authorization': 'Bearer ' + apiKey,
             },
         });
-
         if (!modelsResponse.ok) {
             console.warn('Nebula Block returned an error.');
             return response.sendStatus(500);
         }
 
         const data = await modelsResponse.json();
-
-        if (!Array.isArray(data)) {
+        const models = data.data.models;
+        if (!Array.isArray(models)) {
             console.warn('Nebula Block returned invalid data.');
             return response.sendStatus(500);
         }
 
-        const models = data
-            .filter(x => x.type === 'image')
-            .map(x => ({ value: x.id, text: x.display_name }));
+        const imageModels = models
+            .filter(x => x.model_type === 'Image')
+            .map(x => ({ value: x.model_name, text: x.model_alias }));
 
-        return response.send(models);
+        return response.send(imageModels);
     } catch (error) {
         console.error(error);
         return response.sendStatus(500);
@@ -750,7 +750,7 @@ nebulablock.post('/generate', async (request, response) => {
 
         console.debug('Nebula Block request:', request.body);
 
-        const result = await fetch('https://api.nebulablock.com/api/v1/images/generation', {
+        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/images/generation', {
             method: 'POST',
             body: JSON.stringify({
                 prompt: request.body.prompt,
