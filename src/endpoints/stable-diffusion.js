@@ -763,6 +763,7 @@ nebulablock.post('/generate', async (request, response) => {
                 n: 1,
                 // Limited to 10000 on playground, works fine with more.
                 seed: request.body.seed >= 0 ? request.body.seed : Math.floor(Math.random() * 10_000_000),
+                image: request.body.image,
             }),
             headers: {
                 'Content-Type': 'application/json',

@@ -470,6 +470,21 @@ async function loadSettings() {
         extension_settings.sd.styles = defaultStyles;
     }
 
+    const sourceValue = extension_settings.sd.source;
+    const modelValue = extension_settings.sd.model || '';
+    if (sourceValue) {
+        switch (sourceValue.toLowerCase()) {
+            case "nebulablock":
+                if (modelValue.toLowerCase().includes('flux')) {
+                    $("#upload_image").show();
+                } else {
+                    $("#upload_image").hide();
+                }
+                break;
+        }
+    }
+
+    $('#model_image_name').text(extension_settings.sd.imageName || '');
     $('#sd_source').val(extension_settings.sd.source);
     $('#sd_scale').val(extension_settings.sd.scale).trigger('input');
     $('#sd_steps').val(extension_settings.sd.steps).trigger('input');
@@ -952,6 +967,45 @@ const resolutionOptions = {
     sd_res_1792x1024: { width: 1792, height: 1024, name: '1792x1024 (7:4, DALL-E)' },
 };
 
+function getImageBase64(file, callback) {
+    try {
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+            const fileName = file.name ?? ''
+            const nameType = fileName.includes('.') ? fileName.split('.').pop() : '-';
+            console.error('upload image name type error', nameType);
+            return false;
+        }
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            callback(e.target.result)
+        };
+        reader.readAsDataURL(file);
+    } catch (err) {
+        console.error(err)
+    }
+};
+
+function onUploadInput() {
+    const form = $('#form_model_image_upload').get(0);
+    if (!(form instanceof HTMLFormElement)) {
+        console.error('form_model_image_upload is not a form');
+        return;
+    }
+    const formData = new FormData(form);
+    const file = formData.get('avatar');
+    if (!(file instanceof File) || file.size === 0) {
+        form.reset();
+        return;
+    }
+    getImageBase64(file, (base64) => {
+        extension_settings.sd.imageUrl = base64;
+        extension_settings.sd.imageName = file.name;
+        $('#model_image_name').text(file.name);
+        saveSettingsDebounced();
+    })
+    form.reset();
+}
+
 function onResolutionChange() {
     const selectedOption = $('#sd_resolution').val();
     const selectedResolution = resolutionOptions[selectedOption];
@@ -1280,6 +1334,17 @@ async function validateComfyUrl() {
 
 async function onModelChange() {
     extension_settings.sd.model = $('#sd_model').find(':selected').val();
+    if (extension_settings.sd.source) {
+        switch (extension_settings.sd.source.toLowerCase()) {
+            case "nebulablock":
+                if (extension_settings.sd.model.toLowerCase().includes('flux')) {
+                    $("#upload_image").show();
+                } else {
+                    $("#upload_image").hide();
+                }
+                break;
+        }
+    }
     saveSettingsDebounced();
 
     if (extension_settings.sd.source === sources.nebulablock) {
@@ -1723,7 +1788,6 @@ async function loadModels() {
             break;
         case sources.nebulablock:
             models = await loadNebulaBlockModels();
-            console.log('modelsmodelsmodelsmodels:', models)
             break;
         case sources.nanogpt:
             models = await loadNanoGPTModels();
@@ -3797,12 +3861,14 @@ async function generateHuggingFaceImage(prompt, signal) {
  * @returns {Promise<{format: string, data: string}>} - A promise that resolves when the image generation and processing are complete.
  */
 async function generateNebulaBlockImage(prompt, negative_prompt, signal) {
+    const model = extension_settings.sd.model;
+    const image = model.toLowerCase().includes('flux') ? extension_settings.sd.imageUrl : undefined;
     const result = await fetch('/api/sd/nebulablock/generate', {
         method: 'POST',
         headers: getRequestHeaders(),
         signal: signal,
         body: JSON.stringify({
-            model: extension_settings.sd.model,
+            model,
             prompt,
             negative_prompt,
             scale: parseFloat(extension_settings.sd.scale),
@@ -3810,6 +3876,7 @@ async function generateNebulaBlockImage(prompt, negative_prompt, signal) {
             width: parseInt(extension_settings.sd.width),
             steps: parseInt(extension_settings.sd.steps),
             seed: extension_settings.sd.seed,
+            image,
         }),
     });
 
@@ -4925,6 +4992,7 @@ jQuery(async () => {
     $('#sd_scheduler').on('change', onSchedulerChange);
     $('#sd_prompt_prefix').on('input', onPromptPrefixInput);
     $('#sd_negative_prompt').on('input', onNegativePromptInput);
+    $('#add_model_image_button').on('input', onUploadInput);
     $('#sd_width').on('input', onWidthInput);
     $('#sd_height').on('input', onHeightInput);
     $('#sd_horde_nsfw').on('input', onHordeNsfwInput);

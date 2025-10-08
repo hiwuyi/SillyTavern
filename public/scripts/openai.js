@@ -1902,7 +1902,7 @@ function saveModelList(data) {
     }
 
     if (oai_settings.chat_completion_source == chat_completion_sources.NEBULABLOCK) {
-        console.log('set model options', model_list)
+        // console.log('set model options', model_list)
         $('#model_nebulablock_select').empty();
         model_list.forEach((model) => {
             if (model?.model_type?.includes('Text')) {
@@ -3983,7 +3983,6 @@ function setContinuePostfixControls() {
 }
 
 async function getStatusOpen() {
-    console.log(11111111)
     const noValidateSources = [
         chat_completion_sources.CLAUDE,
         chat_completion_sources.AI21,
@@ -5047,7 +5046,7 @@ async function onModelChange() {
             console.debug('Null Nebula Block model selected. Ignoring.');
             return;
         }
-        console.log('Nebula Block model changed to', value);
+        // console.log('Nebula Block model changed to', value);
         oai_settings.nebulablock_model = value;
     }
 

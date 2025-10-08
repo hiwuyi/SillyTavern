@@ -1,7 +1,14 @@
+// prod
 export const REQUEST_DOMAIN_NAMES = {
     NEBULABLOCK: 'https://api.nebulablock.com/api/v1',
     NEBULABLOCK_CHAT: 'https://inference.nebulablock.com/v1',
 }
+
+// testnet
+// export const REQUEST_DOMAIN_NAMES = {
+//     NEBULABLOCK: 'https://dev-portal-api.nebulablock.com/api/v1',
+//     NEBULABLOCK_CHAT: 'https://dev-llm-proxy.nebulablock.com/v1',
+// }
 
 /**
  * Common debounce timeout values to use with `debounce` calls.
