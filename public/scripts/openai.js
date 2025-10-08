@@ -1905,13 +1905,13 @@ function saveModelList(data) {
         console.log('set model options', model_list)
         $('#model_nebulablock_select').empty();
         model_list.forEach((model) => {
-            // if (model?.model_type?.includes('Text')) {
-            $('#model_nebulablock_select').append(
-                $('<option>', {
-                    value: model.id,
-                    text: model.name,
-                }));
-            // }
+            if (model?.model_type?.includes('Text')) {
+                $('#model_nebulablock_select').append(
+                    $('<option>', {
+                        value: model.id,
+                        text: model.name,
+                    }));
+            }
         });
 
         const selectedModel = model_list.find(model => model.id === oai_settings.nebulablock_model);
