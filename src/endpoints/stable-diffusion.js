@@ -705,7 +705,7 @@ nebulablock.post('/models', async (request, response) => {
         const apiKey = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
 
         if (!apiKey) {
-            console.warn('Nebula Block apiKey not found.');
+            console.warn('MegaNova AI apiKey not found.');
             return response.sendStatus(400);
         }
         const apiUrl = REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless';
@@ -717,14 +717,14 @@ nebulablock.post('/models', async (request, response) => {
             },
         });
         if (!modelsResponse.ok) {
-            console.warn('Nebula Block returned an error.');
+            console.warn('MegaNova AI returned an error.');
             return response.sendStatus(500);
         }
 
         const data = await modelsResponse.json();
         const models = data.data.models;
         if (!Array.isArray(models)) {
-            console.warn('Nebula Block returned invalid data.');
+            console.warn('MegaNova AI returned invalid data.');
             return response.sendStatus(500);
         }
 
@@ -744,11 +744,11 @@ nebulablock.post('/generate', async (request, response) => {
         const key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
 
         if (!key) {
-            console.warn('Nebula Block key not found.');
+            console.warn('MegaNova AI key not found.');
             return response.sendStatus(400);
         }
 
-        console.debug('Nebula Block request:', request.body);
+        console.debug('MegaNova AI request:', request.body);
 
         const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/images/generation', {
             method: 'POST',
@@ -772,13 +772,13 @@ nebulablock.post('/generate', async (request, response) => {
         });
 
         if (!result.ok) {
-            console.warn('Nebula Block returned an error.', { body: await result.text() });
+            console.warn('MegaNova AI returned an error.', { body: await result.text() });
             return response.sendStatus(500);
         }
 
         /** @type {any} */
         const data = await result.json();
-        console.debug('Nebula Block response:', data);
+        console.debug('MegaNova AI response:', data);
 
         const choice = data?.data?.[0];
         let b64_json = choice.b64_json;

@@ -4902,7 +4902,7 @@ function getElectronHubMaxContext(model, isUnlocked) {
 }
 
 /**
- * Get the maximum context size for the Nebula Block model
+ * Get the maximum context size for the MegaNova AI model
  * @param {string} model Model identifier
  * @param {boolean} isUnlocked Whether context limits are unlocked
  * @returns {number} Maximum context size in tokens
@@ -5043,10 +5043,10 @@ async function onModelChange() {
 
     if ($(this).is('#model_nebulablock_select')) {
         if (!value) {
-            console.debug('Null Nebula Block model selected. Ignoring.');
+            console.debug('Null MegaNova AI model selected. Ignoring.');
             return;
         }
-        // console.log('Nebula Block model changed to', value);
+        // console.log('MegaNova AI model changed to', value);
         oai_settings.nebulablock_model = value;
     }
 
@@ -5638,7 +5638,7 @@ async function onConnectButtonClick(e) {
         }
 
         if (!secret_state[SECRET_KEYS.NEBULABLOCK]) {
-            console.log('No secret key saved for Nebula Block');
+            console.log('No secret key saved for MegaNova AI');
             return;
         }
     }

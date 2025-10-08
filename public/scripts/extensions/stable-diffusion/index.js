@@ -472,9 +472,12 @@ async function loadSettings() {
 
     const sourceValue = extension_settings.sd.source;
     const modelValue = extension_settings.sd.model || '';
+    console.log('init source', sourceValue)
+    console.log('init model', modelValue)
     if (sourceValue) {
         switch (sourceValue.toLowerCase()) {
             case "nebulablock":
+                console.log(modelValue.toLowerCase().includes('flux'))
                 if (modelValue.toLowerCase().includes('flux')) {
                     $("#upload_image").show();
                 } else {
@@ -1334,6 +1337,7 @@ async function validateComfyUrl() {
 
 async function onModelChange() {
     extension_settings.sd.model = $('#sd_model').find(':selected').val();
+    console.log('change model', extension_settings.sd.model)
     if (extension_settings.sd.source) {
         switch (extension_settings.sd.source.toLowerCase()) {
             case "nebulablock":
@@ -1985,7 +1989,7 @@ async function loadTogetherAIModels() {
 
 async function loadNebulaBlockModels() {
     // if (!secret_state[SECRET_KEYS.NEBULABLOCK]) {
-    //     console.debug('Nebula Block API key is not set.');
+    //     console.debug('MegaNova AI API key is not set.');
     //     return [];
     // }
 
@@ -3855,7 +3859,7 @@ async function generateHuggingFaceImage(prompt, signal) {
 }
 
 /**
- * Generates an image using the Nebula Block API.
+ * Generates an image using the MegaNova AI API.
  * @param {string} prompt - The main instruction used to guide the image generation.
  * @param {AbortSignal} signal - An AbortSignal object that can be used to cancel the request.
  * @returns {Promise<{format: string, data: string}>} - A promise that resolves when the image generation and processing are complete.

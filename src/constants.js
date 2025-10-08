@@ -1,13 +1,13 @@
 // prod
 export const REQUEST_DOMAIN_NAMES = {
-    NEBULABLOCK: 'https://api.nebulablock.com/api/v1',
-    NEBULABLOCK_CHAT: 'https://inference.nebulablock.com/v1',
+    NEBULABLOCK: 'https://api.meganova.ai/api/v1',
+    NEBULABLOCK_CHAT: 'https://inference.meganova.ai/v1',
 }
 
 // testnet
 // export const REQUEST_DOMAIN_NAMES = {
-//     NEBULABLOCK: 'https://dev-portal-api.nebulablock.com/api/v1',
-//     NEBULABLOCK_CHAT: 'https://dev-llm-proxy.nebulablock.com/v1',
+//     NEBULABLOCK: 'https://dev-portal-api.meganova.ai/api/v1',
+//     NEBULABLOCK_CHAT: 'https://dev-llm-proxy.meganova.ai/v1',
 // }
 
 export const PUBLIC_DIRECTORIES = {

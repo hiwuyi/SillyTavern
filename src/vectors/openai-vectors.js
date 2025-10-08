@@ -19,7 +19,7 @@ const SOURCES = {
     },
     'nebulablock': {
         secretKey: SECRET_KEYS.NEBULABLOCK,
-        url: 'api.nebulablock.com',
+        url: 'api.meganova.ai',
         model: 'Bytedance/seedream-3-0-t2i-250415',
     },
 };
