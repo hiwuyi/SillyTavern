@@ -2985,7 +2985,7 @@ async function sendGenerationRequest(generationType, prompt, additionalNegativeP
                 result = await generateElectronHubImage(prefixedPrompt, signal);
                 break;
             case sources.nebulablock:
-                result = await generateNebulaBlockImage(prefixedPrompt, signal);
+                result = await generateNebulaBlockImage(prefixedPrompt, negativePrompt, signal);
                 break;
             case sources.nanogpt:
                 result = await generateNanoGPTImage(prefixedPrompt, negativePrompt, signal);
@@ -3019,7 +3019,7 @@ async function sendGenerationRequest(generationType, prompt, additionalNegativeP
         return;
     }
 
-    const filename = `${characterName}_${humanizedDateTime()}`;
+    const filename = `${characterName || extension_settings.sd.source}_${humanizedDateTime()}`;
     const base64Image = await saveBase64AsFile(result.data, characterName, filename, result.format);
     callback
         ? await callback(prompt, base64Image, generationType, additionalNegativePrefix, initiator, prefixedPrompt, result.format)
@@ -3815,7 +3815,7 @@ async function generateNebulaBlockImage(prompt, negative_prompt, signal) {
 
     if (result.ok) {
         const data = await result.json();
-        return { format: 'jpg', data: data.image };
+        return data;
     } else {
         const text = await result.text();
         throw new Error(text);

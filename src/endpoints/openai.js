@@ -409,7 +409,7 @@ router.post('/nebulablock/models', async (request, response) => {
             return response.sendStatus(400);
         }
 
-        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/models', {
+        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless/models', {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${key}`,
@@ -424,7 +424,8 @@ router.post('/nebulablock/models', async (request, response) => {
 
         const model_list = await result.json();
         const list = model_list.data?.models
-        const models = list.filter(item => item.model_type === "Text").map(item => ({
+        // const models = list.filter(item => item.model_type === "Text").map(item => ({
+        const models = list.map(item => ({
             value: item.model_name,
             text: item.model_name
         }));

@@ -1700,7 +1700,7 @@ router.post('/status', async function (request, statusResponse) {
         Object.keys(queryParams).forEach(key => {
             modelsUrl.searchParams.append(key, queryParams[key]);
         });
-        console.log('check status url', apiUrl, apiKey, modelsUrl)
+        //console.log('check status url', apiUrl, apiKey, modelsUrl)
         const response = await fetch(modelsUrl, {
             method: 'GET',
             headers: {
@@ -1711,7 +1711,7 @@ router.post('/status', async function (request, statusResponse) {
         if (response.ok) {
             /** @type {any} */
             let data = await response.json();
-            console.log('res json', data)
+            //console.log('res json', data)
             if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.POLLINATIONS && Array.isArray(data)) {
                 data = { data: data.map(model => ({ id: model.name, ...model })) };
             }
@@ -1749,7 +1749,7 @@ router.post('/status', async function (request, statusResponse) {
 
                 if (Array.isArray(models)) {
                     const modelIds = models.filter(x => x && typeof x === 'object').map(x => x.id).sort();
-                    console.info('Available models:', modelIds);
+                    //console.info('Available models:', modelIds);
                 } else {
                     console.warn('Chat Completion endpoint did not return a list of models.');
                 }
@@ -2168,7 +2168,7 @@ router.post('/generate', function (request, response) {
         signal: controller.signal,
     };
 
-    console.debug('Chat Completion request:', requestBody);
+    console.debug('Chat Completion request:', endpointUrl, config);
 
     makeRequest(config, response, request);
 

@@ -786,7 +786,7 @@ nebulablock.post('/generate', async (request, response) => {
             const buffer = await (await fetch(choice.url)).arrayBuffer();
             b64_json = Buffer.from(buffer).toString('base64');
         }
-
+        //b64_json = 'data:image/png;base64,' + b64_json;
         return response.send({ format: 'jpg', data: b64_json });
     } catch (error) {
         console.error(error);
