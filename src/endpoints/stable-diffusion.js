@@ -698,17 +698,17 @@ together.post('/generate', async (request, response) => {
     }
 });
 
-const nebulablock = express.Router();
+const meganovaai = express.Router();
 
-nebulablock.post('/models', async (request, response) => {
+meganovaai.post('/models', async (request, response) => {
     try {
-        const apiKey = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+        const apiKey = readSecret(request.user.directories, SECRET_KEYS.MEGANOVAAI);
 
         if (!apiKey) {
             console.warn('MegaNova AI apiKey not found.');
             return response.sendStatus(400);
         }
-        const apiUrl = REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless';
+        const apiUrl = REQUEST_DOMAIN_NAMES.MEGANOVAAI + '/serverless';
         const modelsUrl = new URL(urlJoin(apiUrl, '/models'));
         const modelsResponse = await fetch(modelsUrl, {
             method: 'GET',
@@ -739,9 +739,9 @@ nebulablock.post('/models', async (request, response) => {
     }
 });
 
-nebulablock.post('/generate', async (request, response) => {
+meganovaai.post('/generate', async (request, response) => {
     try {
-        const key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+        const key = readSecret(request.user.directories, SECRET_KEYS.MEGANOVAAI);
 
         if (!key) {
             console.warn('MegaNova AI key not found.');
@@ -750,7 +750,7 @@ nebulablock.post('/generate', async (request, response) => {
 
         console.debug('MegaNova AI request:', request.body);
 
-        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/images/generation', {
+        const result = await fetch(REQUEST_DOMAIN_NAMES.MEGANOVAAI + '/images/generation', {
             method: 'POST',
             body: JSON.stringify({
                 prompt: request.body.prompt,
@@ -778,7 +778,7 @@ nebulablock.post('/generate', async (request, response) => {
 
         /** @type {any} */
         const data = await result.json();
-        console.debug('MegaNova AI response:', data);
+        // console.debug('MegaNova AI response:', data);
 
         const choice = data?.data?.[0];
         let b64_json = choice.b64_json;
@@ -1653,7 +1653,7 @@ router.use('/pollinations', pollinations);
 router.use('/stability', stability);
 router.use('/huggingface', huggingface);
 router.use('/electronhub', electronhub);
-router.use('/nebulablock', nebulablock);
+router.use('/meganovaai', meganovaai);
 router.use('/nanogpt', nanogpt);
 router.use('/bfl', bfl);
 router.use('/falai', falai);

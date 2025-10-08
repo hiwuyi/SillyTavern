@@ -33,7 +33,7 @@ import { KokoroTtsProvider } from './kokoro.js';
 import { TtsWebuiProvider } from './tts-webui.js';
 import { PollinationsTtsProvider } from './pollinations.js';
 import { MiniMaxTtsProvider } from './minimax.js';
-import { nebulaBlockTtsProvider } from './nebulablock.js';
+import { megaNovaAITtsProvider } from './meganovaai.js';
 
 const UPDATE_INTERVAL = 1000;
 const wrapper = new ModuleWorkerWrapper(moduleWorker);
@@ -125,7 +125,7 @@ const ttsProviders = {
   'CosyVoice (Unofficial)': CosyVoiceProvider,
   Edge: EdgeTtsProvider,
   ElevenLabs: ElevenLabsTtsProvider,
-  //'MegaNova AI': nebulaBlockTtsProvider,
+  //'MegaNova AI': megaNovaAITtsProvider,
   'Google Translate': GoogleTranslateTtsProvider,
   'Google Gemini TTS': GoogleNativeTtsProvider,
   GSVI: GSVITtsProvider,

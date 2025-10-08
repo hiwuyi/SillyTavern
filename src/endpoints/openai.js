@@ -85,8 +85,8 @@ router.post('/caption-image', async (request, response) => {
       key = readSecret(request.user.directories, SECRET_KEYS.ELECTRONHUB);
     }
 
-    if (request.body.api === 'nebulablock') {
-      key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+    if (request.body.api === 'meganovaai') {
+      key = readSecret(request.user.directories, SECRET_KEYS.MEGANOVAAI);
     }
 
     const noKeyTypes = ['custom', 'ooba', 'koboldcpp', 'vllm', 'llamacpp', 'pollinations'];
@@ -181,8 +181,8 @@ router.post('/caption-image', async (request, response) => {
       apiUrl = 'https://api.electronhub.ai/v1/chat/completions';
     }
 
-    if (request.body.api === 'nebulablock') {
-      apiUrl = REQUEST_DOMAIN_NAMES.NEBULABLOCK_CHAT + '/chat/completions';
+    if (request.body.api === 'meganovaai') {
+      apiUrl = REQUEST_DOMAIN_NAMES.MEGANOVAAI_CHAT + '/chat/completions';
     }
 
     if (['koboldcpp', 'vllm', 'llamacpp', 'ooba'].includes(request.body.api)) {
@@ -334,9 +334,9 @@ router.post('/generate-voice', async (request, response) => {
 });
 
 // MegaNova AI TTS proxy
-router.post('/nebulablock/generate-voice', async (request, response) => {
+router.post('/meganovaai/generate-voice', async (request, response) => {
   try {
-    const key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+    const key = readSecret(request.user.directories, SECRET_KEYS.MEGANOVAAI);
 
     if (!key) {
       console.warn('No MegaNova AI key found');
@@ -374,7 +374,7 @@ router.post('/nebulablock/generate-voice', async (request, response) => {
 
     console.debug('MegaNova AI TTS request', requestBody);
 
-    const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/audio/speech', {
+    const result = await fetch(REQUEST_DOMAIN_NAMES.MEGANOVAAI + '/audio/speech', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -400,16 +400,16 @@ router.post('/nebulablock/generate-voice', async (request, response) => {
 });
 
 // MegaNova AI model list
-router.post('/nebulablock/models', async (request, response) => {
+router.post('/meganovaai/models', async (request, response) => {
   try {
-    const key = readSecret(request.user.directories, SECRET_KEYS.NEBULABLOCK);
+    const key = readSecret(request.user.directories, SECRET_KEYS.MEGANOVAAI);
 
     if (!key) {
       console.warn('No MegaNova AI key found');
       return response.sendStatus(400);
     }
 
-    const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless/models', {
+    const result = await fetch(REQUEST_DOMAIN_NAMES.MEGANOVAAI + '/serverless/models', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${key}`,

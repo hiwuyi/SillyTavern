@@ -1,13 +1,13 @@
 // prod
 export const REQUEST_DOMAIN_NAMES = {
-    NEBULABLOCK: 'https://api.meganova.ai/api/v1',
-    NEBULABLOCK_CHAT: 'https://inference.meganova.ai/v1',
+    MEGANOVAAI: 'https://api.meganova.ai/api/v1',
+    MEGANOVAAI_CHAT: 'https://inference.meganova.ai/v1',
 }
 
 // testnet
 // export const REQUEST_DOMAIN_NAMES = {
-//     NEBULABLOCK: 'https://dev-portal-api.meganova.ai/api/v1',
-//     NEBULABLOCK_CHAT: 'https://dev-llm-proxy.meganova.ai/v1',
+//     MEGANOVAAI: 'https://dev-portal-api.meganova.ai/api/v1',
+//     MEGANOVAAI_CHAT: 'https://dev-llm-proxy.meganova.ai/v1',
 // }
 
 export const PUBLIC_DIRECTORIES = {
@@ -186,7 +186,7 @@ export const CHAT_COMPLETION_SOURCES = {
     PERPLEXITY: 'perplexity',
     GROQ: 'groq',
     ELECTRONHUB: 'electronhub',
-    NEBULABLOCK: 'nebulablock',
+    MEGANOVAAI: 'meganovaai',
     NANOGPT: 'nanogpt',
     DEEPSEEK: 'deepseek',
     AIMLAPI: 'aimlapi',

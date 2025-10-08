@@ -83,7 +83,7 @@ const sources = {
     stability: 'stability',
     huggingface: 'huggingface',
     electronhub: 'electronhub',
-    nebulablock: 'nebulablock',
+    meganovaai: 'meganovaai',
     nanogpt: 'nanogpt',
     bfl: 'bfl',
     falai: 'falai',
@@ -476,7 +476,7 @@ async function loadSettings() {
     console.log('init model', modelValue)
     if (sourceValue) {
         switch (sourceValue.toLowerCase()) {
-            case "nebulablock":
+            case "meganovaai":
                 console.log(modelValue.toLowerCase().includes('flux'))
                 if (modelValue.toLowerCase().includes('flux')) {
                     $("#upload_image").show();
@@ -1340,7 +1340,7 @@ async function onModelChange() {
     console.log('change model', extension_settings.sd.model)
     if (extension_settings.sd.source) {
         switch (extension_settings.sd.source.toLowerCase()) {
-            case "nebulablock":
+            case "meganovaai":
                 if (extension_settings.sd.model.toLowerCase().includes('flux')) {
                     $("#upload_image").show();
                 } else {
@@ -1351,8 +1351,8 @@ async function onModelChange() {
     }
     saveSettingsDebounced();
 
-    if (extension_settings.sd.source === sources.nebulablock) {
-        ensureNebulaBlockQualitySelect();
+    if (extension_settings.sd.source === sources.meganovaai) {
+        ensureMegaNovaAIQualitySelect();
     }
 
     const cloudSources = [
@@ -1365,7 +1365,7 @@ async function onModelChange() {
         sources.stability,
         sources.huggingface,
         sources.electronhub,
-        sources.nebulablock,
+        sources.meganovaai,
         sources.nanogpt,
         sources.bfl,
         sources.falai,
@@ -1586,7 +1586,7 @@ async function loadSamplers() {
         case sources.electronhub:
             samplers = ['N/A'];
             break;
-        case sources.nebulablock:
+        case sources.meganovaai:
             samplers = ['N/A'];
             break;
         case sources.nanogpt:
@@ -1741,7 +1741,7 @@ async function loadComfySamplers() {
     }
 }
 
-let nebulablockImageModelsCache = [];
+let meganovaaiImageModelsCache = [];
 
 async function loadModels() {
     $('#sd_model').empty();
@@ -1790,8 +1790,8 @@ async function loadModels() {
         case sources.electronhub:
             models = await loadElectronHubModels();
             break;
-        case sources.nebulablock:
-            models = await loadNebulaBlockModels();
+        case sources.meganovaai:
+            models = await loadMegaNovaAIModels();
             break;
         case sources.nanogpt:
             models = await loadNanoGPTModels();
@@ -1824,28 +1824,28 @@ async function loadModels() {
     }
 }
 
-function ensureNebulaBlockQualitySelect() {
+function ensureMegaNovaAIQualitySelect() {
     try {
         const modelId = String(extension_settings.sd.model || '');
         if (!modelId) return;
 
-        const model = Array.isArray(nebulablockImageModelsCache) ? nebulablockImageModelsCache.find(m => String(m?.id) === modelId) : undefined;
+        const model = Array.isArray(meganovaaiImageModelsCache) ? meganovaaiImageModelsCache.find(m => String(m?.id) === modelId) : undefined;
         const qualities = Array.isArray(model?.qualities) ? model.qualities : undefined;
 
-        let $qualityRow = $('#sd_nebulablock_quality_row');
+        let $qualityRow = $('#sd_meganovaai_quality_row');
         if (!qualities || qualities.length === 0) {
             if ($qualityRow.length) $qualityRow.remove();
-            extension_settings.sd.nebulablock_quality = undefined;
+            extension_settings.sd.meganovaai_quality = undefined;
             saveSettingsDebounced();
             return;
         }
 
         if ($qualityRow.length === 0) {
             $qualityRow = $(
-                '<div class="flex-container" id="sd_nebulablock_quality_row">'
+                '<div class="flex-container" id="sd_meganovaai_quality_row">'
                 + '  <div class="flex1">'
-                + '    <label for="sd_nebulablock_quality" data-i18n="Image Quality">Image Quality</label>'
-                + '    <select id="sd_nebulablock_quality"></select>'
+                + '    <label for="sd_meganovaai_quality" data-i18n="Image Quality">Image Quality</label>'
+                + '    <select id="sd_meganovaai_quality"></select>'
                 + '  </div>'
                 + '</div>',
             );
@@ -1854,27 +1854,27 @@ function ensureNebulaBlockQualitySelect() {
             if ($modelRow.length) {
                 $qualityRow.insertAfter($modelRow);
             } else {
-                $('[data-sd-source="nebulablock"]').last().append($qualityRow);
+                $('[data-sd-source="meganovaai"]').last().append($qualityRow);
             }
 
-            $('#sd_nebulablock_quality').on('change', function () {
-                extension_settings.sd.nebulablock_quality = String($(this).val());
+            $('#sd_meganovaai_quality').on('change', function () {
+                extension_settings.sd.meganovaai_quality = String($(this).val());
                 saveSettingsDebounced();
             });
         }
 
-        const $select = $('#sd_nebulablock_quality');
+        const $select = $('#sd_meganovaai_quality');
         $select.empty();
         for (const q of qualities) {
             const opt = document.createElement('option');
             opt.value = String(q);
             opt.innerText = String(q);
-            opt.selected = String(q) === String(extension_settings.sd.nebulablock_quality || '');
+            opt.selected = String(q) === String(extension_settings.sd.meganovaai_quality || '');
             $select.append(opt);
         }
         if (!$select.val()) {
             const first = String(qualities[0]);
-            extension_settings.sd.nebulablock_quality = first;
+            extension_settings.sd.meganovaai_quality = first;
             $select.val(first);
             saveSettingsDebounced();
         }
@@ -1926,7 +1926,7 @@ async function loadFalaiModels() {
     return [];
 }
 
-function nebulablockGroupImageModelsByVendor(array) {
+function meganovaaiGroupImageModelsByVendor(array) {
     /** @type {Map<string, any[]>} */
     const groups = new Map();
     for (const m of array) {
@@ -1937,7 +1937,7 @@ function nebulablockGroupImageModelsByVendor(array) {
     return groups;
 }
 
-function getNebulaBlockImageModelText(model) {
+function getMegaNovaAIImageModelText(model) {
     const name = String(model?.name || model?.id || '');
     const premium = model?.premium_model ? ' | Premium' : '';
     let price = 'Unknown';
@@ -1987,14 +1987,14 @@ async function loadTogetherAIModels() {
     return [];
 }
 
-async function loadNebulaBlockModels() {
-    // if (!secret_state[SECRET_KEYS.NEBULABLOCK]) {
+async function loadMegaNovaAIModels() {
+    // if (!secret_state[SECRET_KEYS.MEGANOVAAI]) {
     //     console.debug('MegaNova AI API key is not set.');
     //     return [];
     // }
 
     try {
-        const result = await fetch(REQUEST_DOMAIN_NAMES.NEBULABLOCK + '/serverless/models', {
+        const result = await fetch(REQUEST_DOMAIN_NAMES.MEGANOVAAI + '/serverless/models', {
             method: 'GET',
             headers: getRequestHeaders(),
         });
@@ -2360,7 +2360,7 @@ async function loadSchedulers() {
         case sources.electronhub:
             schedulers = ['N/A'];
             break;
-        case sources.nebulablock:
+        case sources.meganovaai:
             schedulers = ['N/A'];
             break;
         case sources.nanogpt:
@@ -2463,7 +2463,7 @@ async function loadVaes() {
         case sources.electronhub:
             vaes = ['N/A'];
             break;
-        case sources.nebulablock:
+        case sources.meganovaai:
             vaes = ['N/A'];
             break;
         case sources.nanogpt:
@@ -3052,8 +3052,8 @@ async function sendGenerationRequest(generationType, prompt, additionalNegativeP
             case sources.electronhub:
                 result = await generateElectronHubImage(prefixedPrompt, signal);
                 break;
-            case sources.nebulablock:
-                result = await generateNebulaBlockImage(prefixedPrompt, negativePrompt, signal);
+            case sources.meganovaai:
+                result = await generateMegaNovaAIImage(prefixedPrompt, negativePrompt, signal);
                 break;
             case sources.nanogpt:
                 result = await generateNanoGPTImage(prefixedPrompt, negativePrompt, signal);
@@ -3864,10 +3864,10 @@ async function generateHuggingFaceImage(prompt, signal) {
  * @param {AbortSignal} signal - An AbortSignal object that can be used to cancel the request.
  * @returns {Promise<{format: string, data: string}>} - A promise that resolves when the image generation and processing are complete.
  */
-async function generateNebulaBlockImage(prompt, negative_prompt, signal) {
+async function generateMegaNovaAIImage(prompt, negative_prompt, signal) {
     const model = extension_settings.sd.model;
     const image = model.toLowerCase().includes('flux') ? extension_settings.sd.imageUrl : undefined;
-    const result = await fetch('/api/sd/nebulablock/generate', {
+    const result = await fetch('/api/sd/meganovaai/generate', {
         method: 'POST',
         headers: getRequestHeaders(),
         signal: signal,
@@ -4375,8 +4375,8 @@ function isValidState() {
             return secret_state[SECRET_KEYS.HUGGINGFACE];
         case sources.electronhub:
             return secret_state[SECRET_KEYS.ELECTRONHUB];
-        case sources.nebulablock:
-            return secret_state[SECRET_KEYS.NEBULABLOCK];
+        case sources.meganovaai:
+            return secret_state[SECRET_KEYS.MEGANOVAAI];
         case sources.nanogpt:
             return secret_state[SECRET_KEYS.NANOGPT];
         case sources.bfl:
