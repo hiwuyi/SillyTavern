@@ -116,6 +116,7 @@ export function registerTtsProvider(name, provider) {
     }
 }
 
+// TTS options
 const ttsProviders = {
     AllTalk: AllTalkTtsProvider,
     Azure: AzureTtsProvider,
@@ -124,7 +125,7 @@ const ttsProviders = {
     'CosyVoice (Unofficial)': CosyVoiceProvider,
     Edge: EdgeTtsProvider,
     ElevenLabs: ElevenLabsTtsProvider,
-    'Nebula Block': nebulaBlockTtsProvider,
+    //'Nebula Block': nebulaBlockTtsProvider,
     'Google Translate': GoogleTranslateTtsProvider,
     'Google Gemini TTS': GoogleNativeTtsProvider,
     GSVI: GSVITtsProvider,
