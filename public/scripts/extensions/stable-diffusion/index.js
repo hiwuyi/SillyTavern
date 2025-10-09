@@ -472,8 +472,6 @@ async function loadSettings() {
 
     const sourceValue = extension_settings.sd.source;
     const modelValue = extension_settings.sd.model || '';
-    console.log('init source', sourceValue)
-    console.log('init model', modelValue)
     if (sourceValue) {
         switch (sourceValue.toLowerCase()) {
             case "meganovaai":
@@ -1337,7 +1335,6 @@ async function validateComfyUrl() {
 
 async function onModelChange() {
     extension_settings.sd.model = $('#sd_model').find(':selected').val();
-    console.log('change model', extension_settings.sd.model)
     if (extension_settings.sd.source) {
         switch (extension_settings.sd.source.toLowerCase()) {
             case "meganovaai":
